@@ -4,12 +4,15 @@
 #
 # SPDX-License-Identifier: MIT
 version: '2'
+
 volumes:
   cvat-keys-data: {}
   cvat-server-data: {}
   cvat-db-data: {}
   cvat-logs-data: {}
+
 services:
+
   cvat-worker-webhooks:
     image: cvat/server:${CVAT_VERSION}
     environment:
@@ -21,17 +24,17 @@ services:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
       - cvat-logs-data:/home/django/logs
-    command:
-      - -c
-      - supervisord/worker.webhooks.conf
+    command: run worker.webhooks
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
-  cvat-redis:
+
+  cvat-redis:  # different, not changed
     image: redis:4.0-alpine
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+
   cvat-logs-volume:
     image: rawmind/alpine-volume:0.0.2-1
     environment:
@@ -48,8 +51,9 @@ services:
       io.rancher.container.start_once: 'true'
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
+
   traefik:
-    image: traefik:v2.9
+    image: traefik:v2.10
     ports:
       - "8080:8080/tcp"
       - "8090:8090/tcp"
@@ -60,6 +64,7 @@ services:
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+
   cvat-ui:
     image: cvat/ui:${CVAT_VERSION}
     labels:
@@ -69,6 +74,7 @@ services:
       io.rancher.container.pull_image: always
       traefik.http.routers.cvat-ui.rule: Host(`${CVAT_PUBLIC_URL}`)
       traefik.http.services.cvat-ui.loadbalancer.server.port: '80'
+
   cvat-opa:
     image: openpolicyagent/opa:0.45.0-rootless
     command:
@@ -83,6 +89,7 @@ services:
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+
   cvat-server-volume:
     image: rawmind/alpine-volume:0.0.2-1
     environment:
@@ -99,6 +106,7 @@ services:
       io.rancher.container.start_once: 'true'
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
+
   cvat-utils:
     image: cvat/server:${CVAT_VERSION}
     environment:
@@ -113,12 +121,11 @@ services:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
       - cvat-logs-data:/home/django/logs
-    command:
-      - -c
-      - supervisord/utils.conf
+    command: run utils
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+
   cvat-keys-volume:
     image: rawmind/alpine-volume:0.0.2-1
     environment:
@@ -135,6 +142,7 @@ services:
       io.rancher.container.start_once: 'true'
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
+
   cvat-db:
     image: postgres:15-alpine
     environment:
@@ -149,6 +157,7 @@ services:
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.sidekicks: cvat-db-volume
       io.rancher.container.pull_image: always
+
   cvat-server:
     image: cvat/server:${CVAT_VERSION}
     environment:
@@ -170,9 +179,7 @@ services:
       - cvat-server-volume
       - cvat-keys-volume
       - cvat-logs-volume
-    command:
-      - -c
-      - supervisord/server.conf
+    command: init run server
     labels:
       traefik.http.routers.cvat.entrypoints: web
       io.rancher.sidekicks: cvat-logs-volume,cvat-server-volume,cvat-keys-volume
@@ -181,6 +188,7 @@ services:
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
       traefik.http.services.cvat.loadbalancer.server.port: '8080'
+
   cvat-db-volume:
     image: rawmind/alpine-volume:0.0.2-1
     environment:
@@ -195,7 +203,8 @@ services:
       io.rancher.container.start_once: 'true'
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
-  cvat-worker-default:
+
+  cvat-worker-import:
     image: cvat/server:${CVAT_VERSION}
     environment:
       CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
@@ -209,13 +218,12 @@ services:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
       - cvat-logs-data:/home/django/logs
-    command:
-      - -c
-      - supervisord/worker.default.conf
+    command: run worker.import
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
-  cvat-worker-low:
+
+  cvat-worker-export:
     image: cvat/server:${CVAT_VERSION}
     environment:
       CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
@@ -229,9 +237,26 @@ services:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
       - cvat-logs-data:/home/django/logs
-    command:
-      - -c
-      - supervisord/worker.low.conf
+    command: run worker.export
+    labels:
+      io.rancher.container.pull_image: always
+      project: ${RANCHER_PROJECT_NAME}
+
+  cvat-worker-annotation:
+    image: cvat/server:${CVAT_VERSION}
+    environment:
+      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
+      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
+      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
+      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
+      CVAT_REDIS_HOST: cvat-redis
+      NUMPROCS: '1'
+      no_proxy: opa
+    volumes:
+      - cvat-server-data:/home/django/data
+      - cvat-keys-data:/home/django/keys
+      - cvat-logs-data:/home/django/logs
+    command: run worker.annotation
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
