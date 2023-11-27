@@ -11,15 +11,26 @@ volumes:
   cvat-db-data: {}
   cvat-logs-data: {}
 
+x-backend-env: &backend-env
+  CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
+  CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
+  CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
+  CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
+  CVAT_REDIS_HOST: cvat-redis
+  CVAT_REDIS_PASSWORD: ''
+  CLICKHOUSE_HOST: clickhouse
+  # no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy:-}
+  no_proxy: clickhouse,grafana,vector,nuclio,opa
+  # SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS:-}
+  SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
+
 services:
 
   cvat-worker-webhooks:
     image: cvat/server:${CVAT_VERSION}
     environment:
-      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
-      CVAT_REDIS_HOST: cvat-redis
+      <<: *backend-env
       NUMPROCS: '1'
-      no_proxy: opa
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
@@ -110,13 +121,8 @@ services:
   cvat-utils:
     image: cvat/server:${CVAT_VERSION}
     environment:
-      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
-      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
-      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
-      CVAT_REDIS_HOST: cvat-redis
-      CVAT_REDIS_PASSWORD: ''
-      no_proxy: clickhouse,grafana,vector,nuclio,opa
+      <<: *backend-env
+      NUMPROCS: '1'
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
@@ -146,11 +152,10 @@ services:
   cvat-db:
     image: postgres:15-alpine
     environment:
+      <<: *backend-env
+      NUMPROCS: '1'
       PGDATA: /var/lib/postgresql/data/pgdata
-      POSTGRES_DB: ${CVAT_POSTGRES_DBNAME}
       POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-      POSTGRES_USER: ${CVAT_POSTGRES_USER}
     volumes_from:
       - cvat-db-volume
     labels:
@@ -161,18 +166,13 @@ services:
   cvat-server:
     image: cvat/server:${CVAT_VERSION}
     environment:
+      <<: *backend-env
+      NUMPROCS: '1'
       ADAPTIVE_AUTO_ANNOTATION: 'false'
       ALLOWED_HOSTS: '*'
       CVAT_ANALYTICS: '0'
-      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
-      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
-      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
-      CVAT_REDIS_HOST: cvat-redis
       DJANGO_MODWSGI_EXTRA_ARGS: ''
       IAM_OPA_BUNDLE: '1'
-      NUMPROCS: '1'
-      no_proxy: clickhouse,grafana,vector,nuclio,opa
     links:
       - cvat-opa:opa
     volumes_from:
@@ -207,13 +207,8 @@ services:
   cvat-worker-import:
     image: cvat/server:${CVAT_VERSION}
     environment:
-      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
-      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
-      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
-      CVAT_REDIS_HOST: cvat-redis
+      <<: *backend-env
       NUMPROCS: '2'
-      no_proxy: opa
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
@@ -226,13 +221,8 @@ services:
   cvat-worker-export:
     image: cvat/server:${CVAT_VERSION}
     environment:
-      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
-      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
-      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
-      CVAT_REDIS_HOST: cvat-redis
+      <<: *backend-env
       NUMPROCS: '1'
-      no_proxy: opa
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
@@ -245,13 +235,8 @@ services:
   cvat-worker-annotation:
     image: cvat/server:${CVAT_VERSION}
     environment:
-      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
-      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
-      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
-      CVAT_REDIS_HOST: cvat-redis
+      <<: *backend-env
       NUMPROCS: '1'
-      no_proxy: opa
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
