@@ -1,0 +1,78 @@
+opa
+
+11/29/2023 6:43:50 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: no route to host","name":"cvat","plugin":"bundle","time":"2023-11-29T17:43:50Z"}
+11/29/2023 6:43:53 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: no route to host","name":"cvat","plugin":"bundle","time":"2023-11-29T17:43:53Z"}
+11/29/2023 6:43:56 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: no route to host","name":"cvat","plugin":"bundle","time":"2023-11-29T17:43:56Z"}
+11/29/2023 6:43:59 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: no route to host","name":"cvat","plugin":"bundle","time":"2023-11-29T17:43:59Z"}
+11/29/2023 6:44:01 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: connection refused","name":"cvat","plugin":"bundle","time":"2023-11-29T17:44:01Z"}
+11/29/2023 6:44:02 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: connection refused","name":"cvat","plugin":"bundle","time":"2023-11-29T17:44:02Z"}
+11/29/2023 6:44:03 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: connection refused","name":"cvat","plugin":"bundle","time":"2023-11-29T17:44:03Z"}
+11/29/2023 6:44:04 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: connection refused","name":"cvat","plugin":"bundle","time":"2023-11-29T17:44:04Z"}
+11/29/2023 6:44:07 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: connection refused","name":"cvat","plugin":"bundle","time":"2023-11-29T17:44:07Z"}
+11/29/2023 6:44:12 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: connection refused","name":"cvat","plugin":"bundle","time":"2023-11-29T17:44:12Z"}
+11/29/2023 6:44:18 PM{"level":"error","msg":"Bundle load failed: request failed: Get \"http://cvat-server:8080/api/auth/rules\": dial tcp 10.42.87.177:8080: connect: connection refused","name":"cvat","plugin":"bundle","time":"2023-11-29T17:44:18Z"}
+11/29/2023 6:44:29 PM{"level":"info","msg":"Bundle loaded and activated successfully. Etag updated to \"1331b78389ae6e702b7cce5c4eeac108d883e50013d329c08465edaa03d511db3bab3ec4b97ab8836503faee57cd1e0e252be4ad27bb25e228305dd3f2933b06\".","name":"cvat","plugin":"bundle","time":"2023-11-29T17:44:29Z"}
+
+
+server
+
+2023-11-29 17:44:23,174 DEBG 'smokescreen' stderr output:
+11/29/2023 6:44:23 PMtime="2023-11-29T17:44:23Z" level=fatal msg="Could not create configuration: Received unexpected non-option argument(s)"
+
+
+redis
+
+11/29/2023 6:43:42 PM1:C 29 Nov 17:43:42.545 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+11/29/2023 6:43:42 PM1:C 29 Nov 17:43:42.545 # Redis version=4.0.14, bits=64, commit=00000000, modified=0, pid=1, just started
+11/29/2023 6:43:42 PM1:C 29 Nov 17:43:42.545 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+11/29/2023 6:43:42 PM1:M 29 Nov 17:43:42.547 * Running mode=standalone, port=6379.
+11/29/2023 6:43:42 PM1:M 29 Nov 17:43:42.547 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.
+11/29/2023 6:43:42 PM1:M 29 Nov 17:43:42.547 # Server initialized
+11/29/2023 6:43:42 PM1:M 29 Nov 17:43:42.547 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+11/29/2023 6:43:42 PM1:M 29 Nov 17:43:42.547 # WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.
+11/29/2023 6:43:42 PM1:M 29 Nov 17:43:42.547 * DB loaded from disk: 0.000 seconds
+11/29/2023 6:43:42 PM1:M 29 Nov 17:43:42.547 * Ready to accept connections
+11/29/2023 6:48:43 PM1:M 29 Nov 17:48:43.066 * 100 changes in 300 seconds. Saving...
+11/29/2023 6:48:43 PM1:M 29 Nov 17:48:43.067 * Background saving started by pid 17
+11/29/2023 6:48:43 PM17:C 29 Nov 17:48:43.069 * DB saved on disk
+11/29/2023 6:48:43 PM17:C 29 Nov 17:48:43.069 * RDB: 0 MB of memory used by copy-on-write
+11/29/2023 6:48:43 PM1:M 29 Nov 17:48:43.167 * Background saving terminated with success
+
+
+utils
+
+11/29/2023 6:44:06 PM2023-11-29 17:44:06,451 DEBG 'rqscheduler' stderr output:
+11/29/2023 6:44:06 PM17:44:06 Registering birth
+11/29/2023 6:44:06 PM[2023-11-29 17:44:06,449] INFO rq_scheduler.scheduler: Registering birth
+11/29/2023 6:44:06 PM
+11/29/2023 6:50:49 PM2023-11-29 17:50:49,980 DEBG 'rqworker-cleaning-0' stderr output:
+11/29/2023 6:50:49 PM[2023-11-29 17:50:49,979] DEBUG rq.worker: Sent heartbeat to prevent worker timeout. Next one should arrive in 480 seconds.
+11/29/2023 6:50:49 PM
+11/29/2023 6:50:49 PM2023-11-29 17:50:49,980 DEBG 'rqworker-cleaning-0' stderr output:
+11/29/2023 6:50:49 PM[2023-11-29 17:50:49,980] DEBUG rq.worker: Dequeueing jobs on queues cleaning and timeout 405
+11/29/2023 6:50:49 PM
+11/29/2023 6:50:51 PM2023-11-29 17:50:51,482 DEBG 'rqworker-notifications' stderr output:
+11/29/2023 6:50:51 PM[2023-11-29 17:50:51,482] DEBUG rq.worker: Sent heartbeat to prevent worker timeout. Next one should arrive in 480 seconds.
+11/29/2023 6:50:51 PM[2023-11-29 17:50:51,482] DEBUG rq.worker: Dequeueing jobs on queues notifications and timeout 405
+
+
+webhooks
+
+11/29/2023 6:43:57 PM2023-11-29 17:43:57,961 INFO spawned: 'smokescreen' with pid 88
+11/29/2023 6:43:58 PM2023-11-29 17:43:58,014 DEBG 'smokescreen' stderr output:
+11/29/2023 6:43:58 PMtime="2023-11-29T17:43:58Z" level=fatal msg="Could not create configuration: Received unexpected non-option argument(s)"
+
+
+traefik
+
+11/29/2023 6:43:04 PMtime="2023-11-29T17:43:04Z" level=error msg="accept tcp [::]:8080: use of closed network connection" entryPointName=web
+11/29/2023 6:43:04 PMtime="2023-11-29T17:43:04Z" level=error msg="close tcp [::]:8080: use of closed network connection" entryPointName=web
+11/29/2023 6:43:04 PMtime="2023-11-29T17:43:04Z" level=error msg="Error reading metadata version: Get \"http://rancher-metadata.rancher.internal/latest/version?wait=true&value=74a0dfbb-1921-40b0-8b8b-65fffb46f5b5&maxWait=15\": context canceled"
+11/29/2023 6:43:14 PMpanic: Timeout while stopping traefik, killing instance ✝
+11/29/2023 6:43:14 PM
+11/29/2023 6:43:14 PMgoroutine 255 [running]:
+11/29/2023 6:43:14 PMgithub.com/traefik/traefik/v2/pkg/server.(*Server).Close.func1({0x5c728c8, 0xc0003e4310})
+11/29/2023 6:43:14 PM	github.com/traefik/traefik/v2/pkg/server/server.go:93 +0x9d
+11/29/2023 6:43:14 PMcreated by github.com/traefik/traefik/v2/pkg/server.(*Server).Close in goroutine 1
+11/29/2023 6:43:14 PM	github.com/traefik/traefik/v2/pkg/server/server.go:88 +0x96
+11/29/2023 6:43:34 PMtime="2023-11-29T17:43:34Z" level=info msg="Configuration loaded from flags."
