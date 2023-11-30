@@ -4,34 +4,47 @@
 #
 # SPDX-License-Identifier: MIT
 version: '2'
+
 volumes:
   cvat-keys-data: {}
   cvat-server-data: {}
   cvat-db-data: {}
   cvat-logs-data: {}
+
 services:
+
   cvat-worker-webhooks:
     image: cvat/server:${CVAT_VERSION}
     environment:
+      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
       CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
+      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
+      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
       CVAT_REDIS_HOST: cvat-redis
+      CVAT_REDIS_PASSWORD: ''
+      CLICKHOUSE_HOST: clickhouse
+      no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy}
+      SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
       NUMPROCS: '1'
-      no_proxy: opa
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
       - cvat-logs-data:/home/django/logs
-    command:
-      - -c
-      - supervisord/worker.webhooks.conf
+    command: run worker.webhooks
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
-  cvat-redis:
+    networks:
+      - cvat
+
+  cvat-redis:  # different, not changed
     image: redis:4.0-alpine
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+    networks:
+      - cvat
+
   cvat-logs-volume:
     image: rawmind/alpine-volume:0.0.2-1
     environment:
@@ -48,8 +61,11 @@ services:
       io.rancher.container.start_once: 'true'
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
+    networks:
+      - cvat
+
   traefik:
-    image: traefik:v2.9
+    image: traefik:v2.10
     ports:
       - "8080:8080/tcp"
       - "8090:8090/tcp"
@@ -57,9 +73,27 @@ services:
       - --providers.rancher=true
       - --providers.rancher.exposedByDefault=false
       - --entryPoints.web.address=:8080
+    environment:
+      CVAT_HOST: cvat-server
+      DJANGO_LOG_VIEWER_HOST: grafana
+      DJANGO_LOG_VIEWER_PORT: 3000
+      TRAEFIK_ACCESSLOG_FORMAT: json
+      TRAEFIK_LOG_FORMAT: json
+      TRAEFIK_ENTRYPOINTS_web_ADDRESS: :8080
+      TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT: "false"
+      TRAEFIK_PROVIDERS_DOCKER_NETWORK: cvat
+      TRAEFIK_PROVIDERS_FILE_DIRECTORY: /etc/traefik/rules=value
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 100m
+        max-file: "10"
+    networks:
+      - cvat
+
   cvat-ui:
     image: cvat/ui:${CVAT_VERSION}
     labels:
@@ -69,6 +103,9 @@ services:
       io.rancher.container.pull_image: always
       traefik.http.routers.cvat-ui.rule: Host(`${CVAT_PUBLIC_URL}`)
       traefik.http.services.cvat-ui.loadbalancer.server.port: '80'
+    networks:
+      - cvat
+
   cvat-opa:
     image: openpolicyagent/opa:0.45.0-rootless
     command:
@@ -83,6 +120,11 @@ services:
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+    networks:
+      cvat:
+        aliases:
+          - opa
+
   cvat-server-volume:
     image: rawmind/alpine-volume:0.0.2-1
     environment:
@@ -99,6 +141,9 @@ services:
       io.rancher.container.start_once: 'true'
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
+    networks:
+      - cvat
+
   cvat-utils:
     image: cvat/server:${CVAT_VERSION}
     environment:
@@ -108,17 +153,21 @@ services:
       CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
       CVAT_REDIS_HOST: cvat-redis
       CVAT_REDIS_PASSWORD: ''
-      no_proxy: clickhouse,grafana,vector,nuclio,opa
+      CLICKHOUSE_HOST: clickhouse
+      no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy}
+      SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
+      NUMPROCS: '1'
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
       - cvat-logs-data:/home/django/logs
-    command:
-      - -c
-      - supervisord/utils.conf
+    command: run utils
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+    networks:
+      - cvat
+
   cvat-keys-volume:
     image: rawmind/alpine-volume:0.0.2-1
     environment:
@@ -135,44 +184,50 @@ services:
       io.rancher.container.start_once: 'true'
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
+    networks:
+      - cvat
+
   cvat-db:
     image: postgres:15-alpine
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: ${CVAT_POSTGRES_USER}
       POSTGRES_DB: ${CVAT_POSTGRES_DBNAME}
       POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-      POSTGRES_USER: ${CVAT_POSTGRES_USER}
     volumes_from:
       - cvat-db-volume
     labels:
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.sidekicks: cvat-db-volume
       io.rancher.container.pull_image: always
+    networks:
+      - cvat
+
   cvat-server:
     image: cvat/server:${CVAT_VERSION}
     environment:
-      ADAPTIVE_AUTO_ANNOTATION: 'false'
-      ALLOWED_HOSTS: '*'
-      CVAT_ANALYTICS: '0'
       CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
       CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
       CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
       CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
       CVAT_REDIS_HOST: cvat-redis
+      CVAT_REDIS_PASSWORD: ''
+      CLICKHOUSE_HOST: clickhouse
+      no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy}
+      SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
+      NUMPROCS: '1'
+      ADAPTIVE_AUTO_ANNOTATION: 'false'
+      ALLOWED_HOSTS: '*'
+      CVAT_ANALYTICS: '0'
       DJANGO_MODWSGI_EXTRA_ARGS: ''
       IAM_OPA_BUNDLE: '1'
-      NUMPROCS: '1'
-      no_proxy: clickhouse,grafana,vector,nuclio,opa
     links:
       - cvat-opa:opa
     volumes_from:
       - cvat-server-volume
       - cvat-keys-volume
       - cvat-logs-volume
-    command:
-      - -c
-      - supervisord/server.conf
+    command: init run server
     labels:
       traefik.http.routers.cvat.entrypoints: web
       io.rancher.sidekicks: cvat-logs-volume,cvat-server-volume,cvat-keys-volume
@@ -181,6 +236,9 @@ services:
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
       traefik.http.services.cvat.loadbalancer.server.port: '8080'
+    networks:
+      - cvat
+
   cvat-db-volume:
     image: rawmind/alpine-volume:0.0.2-1
     environment:
@@ -195,7 +253,10 @@ services:
       io.rancher.container.start_once: 'true'
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
-  cvat-worker-default:
+    networks:
+      - cvat
+
+  cvat-worker-import:
     image: cvat/server:${CVAT_VERSION}
     environment:
       CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
@@ -203,19 +264,23 @@ services:
       CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
       CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
       CVAT_REDIS_HOST: cvat-redis
+      CVAT_REDIS_PASSWORD: ''
+      CLICKHOUSE_HOST: clickhouse
+      no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy}
+      SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
       NUMPROCS: '2'
-      no_proxy: opa
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
       - cvat-logs-data:/home/django/logs
-    command:
-      - -c
-      - supervisord/worker.default.conf
+    command: run worker.import
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
-  cvat-worker-low:
+    networks:
+      - cvat
+
+  cvat-worker-export:
     image: cvat/server:${CVAT_VERSION}
     environment:
       CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
@@ -223,15 +288,47 @@ services:
       CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
       CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
       CVAT_REDIS_HOST: cvat-redis
+      CVAT_REDIS_PASSWORD: ''
+      CLICKHOUSE_HOST: clickhouse
+      no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy}
+      SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
       NUMPROCS: '1'
-      no_proxy: opa
     volumes:
       - cvat-server-data:/home/django/data
       - cvat-keys-data:/home/django/keys
       - cvat-logs-data:/home/django/logs
-    command:
-      - -c
-      - supervisord/worker.low.conf
+    command: run worker.export
     labels:
       io.rancher.container.pull_image: always
       project: ${RANCHER_PROJECT_NAME}
+    networks:
+      - cvat
+
+  cvat-worker-annotation:
+    image: cvat/server:${CVAT_VERSION}
+    environment:
+      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
+      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
+      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
+      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
+      CVAT_REDIS_HOST: cvat-redis
+      CVAT_REDIS_PASSWORD: ''
+      CLICKHOUSE_HOST: clickhouse
+      no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy}
+      SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
+      NUMPROCS: '1'
+    volumes:
+      - cvat-server-data:/home/django/data
+      - cvat-keys-data:/home/django/keys
+      - cvat-logs-data:/home/django/logs
+    command: run worker.annotation
+    labels:
+      io.rancher.container.pull_image: always
+      project: ${RANCHER_PROJECT_NAME}
+    networks:
+      - cvat
+
+networks:
+  cvat:
+    ipam:
+      driver: default
