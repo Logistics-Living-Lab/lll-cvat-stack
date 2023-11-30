@@ -11,19 +11,6 @@ volumes:
   cvat-db-data: {}
   cvat-logs-data: {}
 
-x-backend-env: &backend-env
-  CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
-  CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
-  CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-  CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
-  CVAT_REDIS_HOST: cvat-redis
-  CVAT_REDIS_PASSWORD: ''
-  CLICKHOUSE_HOST: clickhouse
-  no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy}
-  SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
-  # no_proxy: clickhouse,grafana,vector,nuclio,opa
-  # SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
-
 services:
 
   cvat-worker-webhooks:
@@ -203,17 +190,9 @@ services:
   cvat-db:
     image: postgres:15-alpine
     environment:
-      CVAT_POSTGRES_DBNAME: ${CVAT_POSTGRES_DBNAME}
-      CVAT_POSTGRES_HOST: ${CVAT_POSTGRES_HOST}
-      CVAT_POSTGRES_PASSWORD: ${CVAT_POSTGRES_PASSWORD}
-      CVAT_POSTGRES_USER: ${CVAT_POSTGRES_USER}
-      CVAT_REDIS_HOST: cvat-redis
-      CVAT_REDIS_PASSWORD: ''
-      CLICKHOUSE_HOST: clickhouse
-      no_proxy: clickhouse,grafana,vector,nuclio,opa,${no_proxy}
-      SMOKESCREEN_OPTS: ${SMOKESCREEN_OPTS}
-      NUMPROCS: '1'
       PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: ${CVAT_POSTGRES_USER}
+      POSTGRES_DB: ${CVAT_POSTGRES_DBNAME}
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes_from:
       - cvat-db-volume
@@ -257,6 +236,8 @@ services:
       project: ${RANCHER_PROJECT_NAME}
       io.rancher.container.pull_image: always
       traefik.http.services.cvat.loadbalancer.server.port: '8080'
+    networks:
+      - cvat
 
   cvat-db-volume:
     image: rawmind/alpine-volume:0.0.2-1
